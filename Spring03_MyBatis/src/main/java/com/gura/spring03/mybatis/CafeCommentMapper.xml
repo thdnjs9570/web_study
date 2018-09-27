@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CafeComment">
+
+<insert id="insert" parameterType="CommentDto">
+		INSERT INTO board_cafe_comment (num,writer,content,target_id,ref_group,comment_group,regdate,isDelete) VALUES(#{num}, #{writer},#{content},#{target_id},
+		#{ref_group} ,#{comment_group},SYSDATE,#{isDelete})
+</insert>
+
+<select id="getSequence" resultType = "int">
+	SELECT board_cafe_seq.NEXTVAL from dual
+	
+</select>
+
+<select id="getList" parameterType="int" resultType="CommentDto">
+	SELECT c.*,NVL(l.cnt,0) likeNum ,NVL(d.cnt,0) dislikeNum
+	FROM board_cafe_comment c
+	LEFT OUTER JOIN (SELECT likeCommentNum, count(*) cnt
+	FROM board_cafe_comment_evaluation
+	GROUP BY likeCommentNum) l ON (c.num = l.likeCommentNum)
+	LEFT OUTER JOIN (SELECT dislikeCommentNum,count(*) cnt 
+	FROM board_cafe_comment_evaluation 
+	GROUP BY dislikeCommentNum) d ON (c.num = d.dislikeCommentNum) WHERE ref_group = #{num} ORDER BY comment_group ASC,num ASC
+</select>
+
+<update id="update" parameterType="CommentDto">
+	UPDATE board_cafe_comment SET content = #{content}, regdate = SYSDATE WHERE num = #{num}
+</update>
+
+<update id="delete" parameterType="int">
+	UPDATE board_cafe_comment SET isDelete = replace(isDelete,'0','1') WHERE num = #{num}
+</update>
+
+
+</mapper>
